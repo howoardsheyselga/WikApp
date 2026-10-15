@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wikapp_beta/data/paksa1_multiplechoice_data.dart';
+import 'package:wikapp_beta/data/paksa1/paksa1_multiplechoice_data.dart';
 import 'package:wikapp_beta/models/question_model.dart';
 import 'package:wikapp_beta/widgets/activity_widgets/answer_review_modal.dart';
 import 'package:wikapp_beta/widgets/activity_widgets/quiz_result_screen.dart';

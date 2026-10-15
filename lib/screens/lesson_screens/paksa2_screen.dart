@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:wikapp_beta/data/paksa2_data.dart';
+import 'package:wikapp_beta/data/paksa2/paksa2_data.dart';
 import 'package:wikapp_beta/database/lesson_data.dart';
 import 'package:wikapp_beta/models/lesson_models.dart';
 import 'package:wikapp_beta/screens/dashboard.dart';
 import 'package:wikapp_beta/widgets/paksa1_widgets/paksa1_components.dart';
+import 'package:wikapp_beta/widgets/paksa1_widgets/reading_guard_wrapper.dart';
 
 class Paksa2Screen extends StatefulWidget {
   final LessonData lesson;
@@ -17,41 +18,12 @@ class Paksa2Screen extends StatefulWidget {
 class _Paksa2ScreenState extends State<Paksa2Screen> {
   bool isBookmarked = false;
   double fontSizeMultiplier = 1.0;
-
-  late ScrollController _scrollController;
   late double _readingProgress;
 
   @override
   void initState() {
     super.initState();
     _readingProgress = widget.lesson.progress;
-    _scrollController = ScrollController();
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.position.pixels;
-
-    if (maxScroll > 0) {
-      final progress = (currentScroll / maxScroll).clamp(0.05, 1.0);
-
-      if (progress > _readingProgress) {
-        setState(() {
-          _readingProgress = progress;
-        });
-
-        updateLessonProgress(widget.lesson.id, progress);
-      }
-    }
   }
 
   void _toggleFontSize() {
@@ -132,200 +104,134 @@ class _Paksa2ScreenState extends State<Paksa2Screen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Image Banner
-            Container(
-              width: double.infinity,
-              height: 180,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1E4D3),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: Image.asset(
-                  'assets/images/paksa2_header.png',
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Center(
-                      child: Icon(
-                        Icons.psychology_rounded,
-                        size: 70,
-                        color: Color(0xFFC86D51),
-                      ),
-                    );
-                  },
+      body: ReadingGuardWrapper(
+        currentProgress: _readingProgress,
+        onProgressUpdated: (newProgress) {
+          setState(() {
+            _readingProgress = newProgress;
+          });
+          updateLessonProgress(widget.lesson.id, newProgress);
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Image Banner
+              Container(
+                width: double.infinity,
+                height: 180,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1E4D3),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Image.asset(
+                    'assets/images/paksa2_header.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(
+                        child: Icon(
+                          Icons.psychology_rounded,
+                          size: 70,
+                          color: Color(0xFFC86D51),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Titles
-            const Text(
-              Paksa2Data.mainHeader,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.8,
-                color: Color(0xFFC86D51),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              widget.lesson.title,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF0F172A),
-                height: 1.25,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              Paksa2Data.subtitle,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF94A3B8),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Introductory Paragraph
-            Text(
-              Paksa2Data.introBody,
-              style: TextStyle(
-                fontSize: baseFontSize,
-                height: 1.6,
-                color: const Color(0xFF334155),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Intro Examples Box
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: const Color(0xFFC86D51).withValues(alpha: 0.3),
-                  width: 1.5,
+              // Titles
+              const Text(
+                Paksa2Data.mainHeader,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                  color: Color(0xFFC86D51),
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Halimbawa ng Kritikal na Pagsusuri:',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFC86D51),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  ...Paksa2Data.introExamples.map(
-                    (ex) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            '• ',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFC86D51),
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              ex,
-                              style: TextStyle(
-                                fontSize: baseFontSize - 1,
-                                color: const Color(0xFF475569),
-                                height: 1.4,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 6),
+              Text(
+                widget.lesson.title,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF0F172A),
+                  height: 1.25,
+                ),
               ),
-            ),
-            const SizedBox(height: 28),
+              const SizedBox(height: 4),
+              const Text(
+                Paksa2Data.subtitle,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF94A3B8),
+                ),
+              ),
+              const SizedBox(height: 20),
 
-            // Section 1: Kritikal na Kasanayan
-            SectionHeader(
-              title: Paksa2Data.kasanayanHeading,
-              baseFontSize: baseFontSize,
-            ),
-            const SizedBox(height: 14),
-            ...Paksa2Data.kasanayanList.map(
-              (item) => Container(
-                margin: const EdgeInsets.only(bottom: 14),
+              // Introductory Paragraph
+              Text(
+                Paksa2Data.introBody,
+                style: TextStyle(
+                  fontSize: baseFontSize,
+                  height: 1.6,
+                  color: const Color(0xFF334155),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Intro Examples Box
+              Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.02),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
+                  border: Border.all(
+                    color: const Color(0xFFC86D51).withValues(alpha: 0.3),
+                    width: 1.5,
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '${item.number}. ${item.title}',
-                      style: const TextStyle(
-                        fontSize: 16,
+                    const Text(
+                      'Halimbawa ng Kritikal na Pagsusuri:',
+                      style: TextStyle(
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFFC86D51),
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      item.description,
-                      style: TextStyle(
-                        fontSize: baseFontSize - 1,
-                        color: const Color(0xFF475569),
-                        height: 1.4,
-                      ),
-                    ),
                     const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFAF6EE),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: RichText(
-                        text: TextSpan(
-                          style: TextStyle(
-                            fontSize: baseFontSize - 2,
-                            color: const Color(0xFF334155),
-                            height: 1.4,
-                          ),
+                    ...Paksa2Data.introExamples.map(
+                      (ex) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const TextSpan(
-                              text: 'Halimbawa: ',
+                            const Text(
+                              '• ',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFFC86D51),
                               ),
                             ),
-                            TextSpan(text: item.example),
+                            Expanded(
+                              child: Text(
+                                ex,
+                                style: TextStyle(
+                                  fontSize: baseFontSize - 1,
+                                  color: const Color(0xFF475569),
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -333,267 +239,341 @@ class _Paksa2ScreenState extends State<Paksa2Screen> {
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 28),
+              const SizedBox(height: 28),
 
-            // Section 2: Sosyal at Kultural na Pananaw
-            SectionHeader(
-              title: Paksa2Data.sosyoKulturalHeading,
-              baseFontSize: baseFontSize,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              Paksa2Data.sosyoKulturalIntro,
-              style: TextStyle(
-                fontSize: baseFontSize,
-                height: 1.6,
-                color: const Color(0xFF334155),
+              // Section 1: Kritikal na Kasanayan
+              SectionHeader(
+                title: Paksa2Data.kasanayanHeading,
+                baseFontSize: baseFontSize,
               ),
-            ),
-            const SizedBox(height: 20),
-
-            // Kontekstong Sosyal
-            Text(
-              Paksa2Data.sosyalSubheading,
-              style: TextStyle(
-                fontSize: baseFontSize + 2,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFFC86D51),
-              ),
-            ),
-            const SizedBox(height: 12),
-            ...Paksa2Data.kontekstoSosyalList.map(
-              (item) => _buildContextCard(item, baseFontSize),
-            ),
-            const SizedBox(height: 24),
-
-            // Kontekstong Kultural
-            Text(
-              Paksa2Data.kulturalSubheading,
-              style: TextStyle(
-                fontSize: baseFontSize + 2,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFFC86D51),
-              ),
-            ),
-            const SizedBox(height: 12),
-            ...Paksa2Data.kontekstoKulturalList.map(
-              (item) => _buildContextCard(item, baseFontSize),
-            ),
-            const SizedBox(height: 28),
-
-            // Section 3: Iba Pang Konteksto
-            SectionHeader(
-              title: Paksa2Data.ibaPangKontekstoHeading,
-              baseFontSize: baseFontSize,
-            ),
-            const SizedBox(height: 14),
-            ...Paksa2Data.ibaPangKontekstoList.map(
-              (item) => _buildContextCard(item, baseFontSize),
-            ),
-            const SizedBox(height: 28),
-
-            // Section 4: Hudyat ng Bias
-            SectionHeader(
-              title: Paksa2Data.biasHeading,
-              baseFontSize: baseFontSize,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              Paksa2Data.biasIntro,
-              style: TextStyle(
-                fontSize: baseFontSize,
-                height: 1.6,
-                color: const Color(0xFF334155),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            Text(
-              Paksa2Data.biasWordsSubheading,
-              style: TextStyle(
-                fontSize: baseFontSize + 1,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFFC86D51),
-              ),
-            ),
-            const SizedBox(height: 12),
-            ...Paksa2Data.biasWordsList.map(
-              (item) => Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFF1F5F9)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${item.number}. ${item.title}',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+              const SizedBox(height: 14),
+              ...Paksa2Data.kasanayanList.map(
+                (item) => Container(
+                  margin: const EdgeInsets.only(bottom: 14),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item.description,
-                      style: TextStyle(
-                        fontSize: baseFontSize - 1,
-                        color: const Color(0xFF475569),
-                        height: 1.4,
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${item.number}. ${item.title}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFC86D51),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      item.example,
-                      style: TextStyle(
-                        fontSize: baseFontSize - 2,
-                        fontWeight: FontWeight.w600,
-                        fontStyle: FontStyle.italic,
-                        color: const Color(0xFFC86D51),
+                      const SizedBox(height: 6),
+                      Text(
+                        item.description,
+                        style: TextStyle(
+                          fontSize: baseFontSize - 1,
+                          color: const Color(0xFF475569),
+                          height: 1.4,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Section 5: Mga Teknik ng Pagkiling
-            Text(
-              Paksa2Data.biasTechniquesSubheading,
-              style: TextStyle(
-                fontSize: baseFontSize + 2,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF1E293B),
-              ),
-            ),
-            const SizedBox(height: 14),
-            ...Paksa2Data.biasTechniquesList.map(
-              (tech) => Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.02),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${tech.number}. ${tech.title}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFC86D51),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFAF6EE),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: RichText(
+                          text: TextSpan(
+                            style: TextStyle(
+                              fontSize: baseFontSize - 2,
+                              color: const Color(0xFF334155),
+                              height: 1.4,
                             ),
+                            children: [
+                              const TextSpan(
+                                text: 'Halimbawa: ',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFC86D51),
+                                ),
+                              ),
+                              TextSpan(text: item.example),
+                            ],
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                const Color(0xFFE5C8A0).withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            tech.uri,
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF92400E),
-                            ),
-                          ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // Section 2: Sosyal at Kultural na Pananaw
+              SectionHeader(
+                title: Paksa2Data.sosyoKulturalHeading,
+                baseFontSize: baseFontSize,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                Paksa2Data.sosyoKulturalIntro,
+                style: TextStyle(
+                  fontSize: baseFontSize,
+                  height: 1.6,
+                  color: const Color(0xFF334155),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Kontekstong Sosyal
+              Text(
+                Paksa2Data.sosyalSubheading,
+                style: TextStyle(
+                  fontSize: baseFontSize + 2,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFFC86D51),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...Paksa2Data.kontekstoSosyalList.map(
+                (item) => _buildContextCard(item, baseFontSize),
+              ),
+              const SizedBox(height: 24),
+
+              // Kontekstong Kultural
+              Text(
+                Paksa2Data.kulturalSubheading,
+                style: TextStyle(
+                  fontSize: baseFontSize + 2,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFFC86D51),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...Paksa2Data.kontekstoKulturalList.map(
+                (item) => _buildContextCard(item, baseFontSize),
+              ),
+              const SizedBox(height: 28),
+
+              // Section 3: Iba Pang Konteksto
+              SectionHeader(
+                title: Paksa2Data.ibaPangKontekstoHeading,
+                baseFontSize: baseFontSize,
+              ),
+              const SizedBox(height: 14),
+              ...Paksa2Data.ibaPangKontekstoList.map(
+                (item) => _buildContextCard(item, baseFontSize),
+              ),
+              const SizedBox(height: 28),
+
+              // Section 4: Hudyat ng Bias
+              SectionHeader(
+                title: Paksa2Data.biasHeading,
+                baseFontSize: baseFontSize,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                Paksa2Data.biasIntro,
+                style: TextStyle(
+                  fontSize: baseFontSize,
+                  height: 1.6,
+                  color: const Color(0xFF334155),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              Text(
+                Paksa2Data.biasWordsSubheading,
+                style: TextStyle(
+                  fontSize: baseFontSize + 1,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFFC86D51),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...Paksa2Data.biasWordsList.map(
+                (item) => Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFF1F5F9)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${item.number}. ${item.title}',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Kahulugan: ${tech.description}',
-                      style: TextStyle(
-                        fontSize: baseFontSize - 1,
-                        color: const Color(0xFF475569),
-                        height: 1.4,
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFAF6EE),
-                        borderRadius: BorderRadius.circular(12),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.description,
+                        style: TextStyle(
+                          fontSize: baseFontSize - 1,
+                          color: const Color(0xFF475569),
+                          height: 1.4,
+                        ),
                       ),
-                      child: Column(
+                      const SizedBox(height: 8),
+                      Text(
+                        item.example,
+                        style: TextStyle(
+                          fontSize: baseFontSize - 2,
+                          fontWeight: FontWeight.w600,
+                          fontStyle: FontStyle.italic,
+                          color: const Color(0xFFC86D51),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Section 5: Mga Teknik ng Pagkiling
+              Text(
+                Paksa2Data.biasTechniquesSubheading,
+                style: TextStyle(
+                  fontSize: baseFontSize + 2,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF1E293B),
+                ),
+              ),
+              const SizedBox(height: 14),
+              ...Paksa2Data.biasTechniquesList.map(
+                (tech) => Container(
+                  margin: const EdgeInsets.only(bottom: 14),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Halimbawa:\n${tech.example}',
-                            style: TextStyle(
-                              fontSize: baseFontSize - 2,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF1E293B),
-                              height: 1.4,
+                          Expanded(
+                            child: Text(
+                              '${tech.number}. ${tech.title}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFC86D51),
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            tech.explanation,
-                            style: TextStyle(
-                              fontSize: baseFontSize - 2,
-                              color: const Color(0xFF64748B),
-                              height: 1.4,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE5C8A0)
+                                  .withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              tech.uri,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF92400E),
+                              ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 6),
+                      Text(
+                        'Kahulugan: ${tech.description}',
+                        style: TextStyle(
+                          fontSize: baseFontSize - 1,
+                          color: const Color(0xFF475569),
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFAF6EE),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Halimbawa:\n${tech.example}',
+                              style: TextStyle(
+                                fontSize: baseFontSize - 2,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF1E293B),
+                                height: 1.4,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              tech.explanation,
+                              style: TextStyle(
+                                fontSize: baseFontSize - 2,
+                                color: const Color(0xFF64748B),
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-            // Bottom Action Options (Finish Review / Take a Quiz)
-            BottomActionOptions(
-              onFinishReview: () {
-                updateLessonProgress(widget.lesson.id, 1.0);
-                Navigator.pop(context);
-              },
-              onTakeQuiz: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        const ActivityDashboardScreen(initialIndex: 2),
-                  ),
-                  (route) => false,
-                );
-              },
-            ),
+              // Bottom Action Options (Finish Review / Take a Quiz)
+              BottomActionOptions(
+                onFinishReview: () {
+                  updateLessonProgress(widget.lesson.id, 1.0);
+                  Navigator.pop(context);
+                },
+                onTakeQuiz: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const ActivityDashboardScreen(initialIndex: 2),
+                    ),
+                    (route) => false,
+                  );
+                },
+              ),
 
-            const SizedBox(height: 40),
-          ],
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );

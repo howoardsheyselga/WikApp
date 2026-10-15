@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:wikapp_beta/data/paksa2_flashcard_data.dart';
+import 'package:wikapp_beta/data/paksa2/paksa2_flashcard_data.dart';
 import 'package:wikapp_beta/models/paksa1_flashcard_model.dart';
 
 class Paksa2FlashcardScreen extends StatefulWidget {

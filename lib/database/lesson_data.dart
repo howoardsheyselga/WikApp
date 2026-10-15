@@ -21,7 +21,7 @@ final ValueNotifier<List<TermData>> dummyTermsNotifier = ValueNotifier<List<Term
         status: 'Tapusin ang pagbabasa',
         badgeColor: const Color(0xFFE2A478),
         imagePath: 'assets/images/paksa2_icon.png',
-        progress: 0.15,
+        progress: 0.0,
       ),
       LessonData(
         id: 'lesson_103',
@@ -29,7 +29,7 @@ final ValueNotifier<List<TermData>> dummyTermsNotifier = ValueNotifier<List<Term
         status: 'Tapos na',
         badgeColor: const Color(0xFFE5C8A0),
         imagePath: 'assets/images/paksa3_icon.png',
-        progress: 0.5,
+        progress: 0.0,
       ),
       LessonData(
         id: 'lesson_104',
@@ -37,7 +37,7 @@ final ValueNotifier<List<TermData>> dummyTermsNotifier = ValueNotifier<List<Term
         status: 'Tapos na',
         badgeColor: const Color.fromARGB(255, 229, 180, 160),
         imagePath: 'assets/images/paksa4_icon.png',
-        progress: 1.0,
+        progress: 0.0,
       ),
     ],
   ),

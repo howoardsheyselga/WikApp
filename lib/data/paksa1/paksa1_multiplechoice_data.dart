@@ -1,4 +1,4 @@
-import '../models/question_model.dart';
+import '../../models/question_model.dart';
 
 class Paksa1MultipleChoiceData {
   static const List<QuestionModel> questions = [

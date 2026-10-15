@@ -1,4 +1,4 @@
-import '../models/paksa1_flashcard_model.dart';
+import '../../models/paksa1_flashcard_model.dart';
 
 class Paksa1FlashcardData {
   static const List<FlashcardItem> flashcards = [

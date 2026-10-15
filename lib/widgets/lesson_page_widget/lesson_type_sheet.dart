@@ -9,6 +9,9 @@ class LessonTypeSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Detect if reading progress is 100% complete
+    final bool isFlashcardUnlocked = lesson.progress >= 1.0;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: const BoxDecoration(
@@ -58,7 +61,7 @@ class LessonTypeSheet extends StatelessWidget {
           // Horizontal Option Cards
           Row(
             children: [
-              // Scroll Mode Card
+              // 1. Scroll Mode Card (Always Unlocked)
               Expanded(
                 child: _ModeOptionCard(
                   title: 'Magbasa (Scroll)',
@@ -67,6 +70,7 @@ class LessonTypeSheet extends StatelessWidget {
                   textColor: const Color(0xFF1E293B),
                   imagePath: 'assets/images/lesson_book_icon.png',
                   defaultIcon: Icons.article_outlined,
+                  isLocked: false,
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
@@ -80,21 +84,57 @@ class LessonTypeSheet extends StatelessWidget {
               ),
               const SizedBox(width: 14),
 
-              // Flashcard Mode Card
+              // 2. Flashcard Mode Card (Locked if progress < 100%)
               Expanded(
                 child: _ModeOptionCard(
                   title: 'Mag-flashcard',
-                  subtitle: 'Magrebyu at mag-aral gamit ang flashcards',
-                  backgroundColor: const Color(0xFFE5C8A0),
-                  textColor: const Color(0xFF1E293B),
+                  subtitle: isFlashcardUnlocked
+                      ? 'Magrebyu at mag-aral gamit ang flashcards'
+                      : 'Kailangan muna matapos ang 100% na pagbabasa',
+                  backgroundColor: isFlashcardUnlocked
+                      ? const Color(0xFFE5C8A0)
+                      : const Color(0xFFE2E8F0), // Greyed out background when locked
+                  textColor: isFlashcardUnlocked
+                      ? const Color(0xFF1E293B)
+                      : const Color(0xFF94A3B8), // Muted text when locked
                   imagePath: 'assets/images/lesson_flashcard_icon.png',
                   defaultIcon: Icons.style_rounded,
+                  isLocked: !isFlashcardUnlocked,
                   onTap: () {
+                    if (!isFlashcardUnlocked) {
+                      // SnackBar feedback when tapped while locked
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Row(
+                            children: [
+                              Icon(Icons.lock_rounded,
+                                  color: Colors.white, size: 20),
+                              SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'Tapusin muna ang 100% na pagbabasa para ma-unlock ang Flashcards!',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                          backgroundColor: const Color(0xFFC86D51),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                      return;
+                    }
+
                     Navigator.pop(context);
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => LessonRouter.getFlashcardScreen(lesson),
+                        builder: (_) =>
+                            LessonRouter.getFlashcardScreen(lesson),
                       ),
                     );
                   },
@@ -130,6 +170,7 @@ class _ModeOptionCard extends StatelessWidget {
   final Color textColor;
   final String? imagePath;
   final IconData defaultIcon;
+  final bool isLocked;
   final VoidCallback onTap;
 
   const _ModeOptionCard({
@@ -139,6 +180,7 @@ class _ModeOptionCard extends StatelessWidget {
     required this.textColor,
     this.imagePath,
     required this.defaultIcon,
+    required this.isLocked,
     required this.onTap,
   });
 
@@ -151,34 +193,75 @@ class _ModeOptionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
-          height: 220,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          height: 230,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Large Image / Icon Display
-              SizedBox(
-                height: 90,
-                child: (imagePath != null && imagePath!.isNotEmpty)
-                    ? Image.asset(
-                        imagePath!,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            defaultIcon,
-                            size: 72,
-                            color: textColor,
-                          );
-                        },
-                      )
-                    : Icon(
-                        defaultIcon,
-                        size: 72,
-                        color: textColor,
+              // Top Right Lock Status Badge Indicator
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (isLocked)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF475569),
+                        borderRadius: BorderRadius.circular(12),
                       ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.lock_rounded,
+                            color: Colors.white,
+                            size: 13,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Naka-lock',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    const SizedBox(height: 24),
+                ],
               ),
 
-              // Text Labels
+              // Image Asset (Always shows image/fallback icon, but applies 40% opacity when locked)
+              SizedBox(
+                height: 80,
+                child: Opacity(
+                  opacity: isLocked ? 0.4 : 1.0,
+                  child: (imagePath != null && imagePath!.isNotEmpty)
+                      ? Image.asset(
+                          imagePath!,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            // Clean fallback if asset is not found
+                            return Icon(
+                              defaultIcon,
+                              size: 64,
+                              color: textColor,
+                            );
+                          },
+                        )
+                      : Icon(
+                          defaultIcon,
+                          size: 64,
+                          color: textColor,
+                        ),
+                ),
+              ),
+
+              // Title and Subtitle Labels
               Column(
                 children: [
                   Text(
@@ -196,7 +279,9 @@ class _ModeOptionCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       height: 1.3,
-                      color: textColor.withValues(alpha: 0.85),
+                      color: isLocked
+                          ? const Color(0xFF64748B)
+                          : textColor.withValues(alpha: 0.85),
                     ),
                     textAlign: TextAlign.center,
                   ),
