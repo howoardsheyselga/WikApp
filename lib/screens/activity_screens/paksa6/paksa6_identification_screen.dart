@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:wikapp_beta/data/paksa1/paksa1_identification_data.dart';
+import 'package:wikapp_beta/data/paksa6/paksa6_identification_data.dart';
 import 'package:wikapp_beta/widgets/activity_widgets/answer_review_modal.dart';
 import 'package:wikapp_beta/widgets/activity_widgets/quiz_result_screen.dart';
 
-class Paksa1IdentificationScreen extends StatefulWidget {
-  const Paksa1IdentificationScreen({super.key});
+class Paksa6IdentificationScreen extends StatefulWidget {
+  const Paksa6IdentificationScreen({super.key});
 
   @override
-  State<Paksa1IdentificationScreen> createState() =>
-      _Paksa1IdentificationScreenState();
+  State<Paksa6IdentificationScreen> createState() =>
+      _Paksa6IdentificationScreenState();
 }
 
-class _Paksa1IdentificationScreenState
-    extends State<Paksa1IdentificationScreen> {
+class _Paksa6IdentificationScreenState
+    extends State<Paksa6IdentificationScreen> {
   int _currentQuestionIndex = 0;
   late List<IdentificationQuestionModel> _shuffledQuestions;
   late List<String> _userAnswers;
@@ -25,7 +25,7 @@ class _Paksa1IdentificationScreenState
   }
 
   void _initializeQuiz() {
-    _shuffledQuestions = List.from(Paksa1IdentificationData.questions)
+    _shuffledQuestions = List.from(Paksa6IdentificationData.questions)
       ..shuffle();
     _userAnswers = List.filled(_shuffledQuestions.length, '');
     _currentQuestionIndex = 0;
@@ -38,11 +38,21 @@ class _Paksa1IdentificationScreenState
     super.dispose();
   }
 
+  void _handlePrevious() {
+    if (_currentQuestionIndex > 0) {
+      _userAnswers[_currentQuestionIndex] = _answerController.text.trim();
+
+      setState(() {
+        _currentQuestionIndex--;
+        _answerController.text = _userAnswers[_currentQuestionIndex];
+      });
+    }
+  }
+
   void _handleNext() {
     final currentInput = _answerController.text.trim();
     if (currentInput.isEmpty) return;
 
-    // Save current user answer
     _userAnswers[_currentQuestionIndex] = currentInput;
 
     if (_currentQuestionIndex < _shuffledQuestions.length - 1) {
@@ -79,6 +89,8 @@ class _Paksa1IdentificationScreenState
         context,
         MaterialPageRoute(
           builder: (context) => QuizResultScreen(
+            activityType: 'IDENTIFICATION',
+            paksaTitle: 'PAKSA 6: TEKNIKAL AT BISWAL NA TEKSTO',
             score: finalScore,
             total: _shuffledQuestions.length,
             reviewItems: reviewItems,
@@ -86,7 +98,7 @@ class _Paksa1IdentificationScreenState
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const Paksa1IdentificationScreen(),
+                  builder: (context) => const Paksa6IdentificationScreen(),
                 ),
               );
             },
@@ -167,7 +179,6 @@ class _Paksa1IdentificationScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Question Box Container
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
@@ -303,48 +314,84 @@ class _Paksa1IdentificationScreenState
                 ),
               ),
 
+              // Bottom Actions (Nakaraan & Susunod)
               ValueListenableBuilder<TextEditingValue>(
                 valueListenable: _answerController,
                 builder: (context, value, child) {
                   final bool isInputValid = value.text.trim().isNotEmpty;
 
-                  return SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isInputValid
-                            ? const Color(0xFFC86D51)
-                            : const Color(0xFFCBD5E1),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                      ),
-                      onPressed: isInputValid ? _handleNext : null,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            _currentQuestionIndex <
-                                    _shuffledQuestions.length - 1
-                                ? 'Isumite ang Sagot'
-                                : 'Tapusin at Suriin',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                  return Row(
+                    children: [
+                      if (_currentQuestionIndex > 0) ...[
+                        Expanded(
+                          flex: 1,
+                          child: SizedBox(
+                            height: 54,
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                  color: Color(0xFF2D2B2A),
+                                  width: 1.8,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                              ),
+                              onPressed: _handlePrevious,
+                              child: const Text(
+                                'Nakaraan',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.arrow_forward_rounded,
-                            color: Colors.white,
-                            size: 20,
+                        ),
+                        const SizedBox(width: 12),
+                      ],
+                      Expanded(
+                        flex: 2,
+                        child: SizedBox(
+                          height: 54,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isInputValid
+                                  ? const Color(0xFFC86D51)
+                                  : const Color(0xFFCBD5E1),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                            onPressed: isInputValid ? _handleNext : null,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  _currentQuestionIndex <
+                                          _shuffledQuestions.length - 1
+                                      ? 'Isumite ang Sagot'
+                                      : 'Tapusin at Suriin',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Icon(
+                                  Icons.arrow_forward_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   );
                 },
               ),

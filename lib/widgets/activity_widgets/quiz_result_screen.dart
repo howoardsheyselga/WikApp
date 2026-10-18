@@ -1,39 +1,101 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:wikapp_beta/helpers/quiz_database_helper.dart';
+import 'package:wikapp_beta/models/quiz_history_model.dart';
 import 'package:wikapp_beta/widgets/activity_widgets/answer_review_modal.dart';
 import 'package:wikapp_beta/widgets/home_page_widget/dashboard_header.dart';
 
-class QuizResultScreen extends StatelessWidget {
+class QuizResultScreen extends StatefulWidget {
+  final String paksaTitle;
+  final String activityType;
   final int score;
   final int total;
   final VoidCallback onRetry;
-  final List<QuizReviewItem>? reviewItems; // Optional detailed review list
+  final List<QuizReviewItem>? reviewItems;
 
   const QuizResultScreen({
     super.key,
+    required this.paksaTitle,
+    required this.activityType,
     required this.score,
     required this.total,
     required this.onRetry,
     this.reviewItems,
   });
 
+  @override
+  State<QuizResultScreen> createState() => _QuizResultScreenState();
+}
+
+class _QuizResultScreenState extends State<QuizResultScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _saveToDatabase();
+  }
+
+  Future<void> _saveToDatabase() async {
+    final historyRecord = QuizHistoryModel(
+      paksaTitle: widget.paksaTitle,
+      activityType: widget.activityType,
+      score: widget.score,
+      totalQuestions: widget.total,
+      timestamp: DateTime.now(),
+      reviewItems: widget.reviewItems ?? [],
+    );
+
+    // 1. Insert row into SQLite DB
+    final insertedId =
+        await QuizDatabaseHelper.instance.insertHistoryRecord(historyRecord);
+
+    // 2. Fetch all records to check total count
+    final allRecords =
+        await QuizDatabaseHelper.instance.getAllHistoryRecords();
+
+    // 3. Print clean verification summary to VS Code Debug Console / Terminal
+    if (kDebugMode) {
+      debugPrint('====================================================');
+      debugPrint('   [SQFLITE DATABASE LOG] - QUIZ ATTEMPT SAVED     ');
+      debugPrint('====================================================');
+      debugPrint(' Row ID Installed : $insertedId');
+      debugPrint(' Paksa            : ${widget.paksaTitle}');
+      debugPrint(' Activity Type    : ${widget.activityType}');
+      debugPrint(' Score            : ${widget.score} / ${widget.total} (${historyRecord.percentage.toStringAsFixed(1)}%)');
+      debugPrint(' Timestamp        : ${historyRecord.timestamp}');
+      debugPrint(' Total DB Entries : ${allRecords.length}');
+      debugPrint('----------------------------------------------------');
+      debugPrint(' Answer Breakdown (${widget.reviewItems?.length ?? 0} items):');
+      
+      if (widget.reviewItems != null) {
+        for (int i = 0; i < widget.reviewItems!.length; i++) {
+          final item = widget.reviewItems![i];
+          final status = item.isCorrect ? '✔ CORRECT' : '❌ INCORRECT';
+          debugPrint('   Q${i + 1}: ${item.questionText}');
+          debugPrint('      User: "${item.userAnswer}" | Correct: "${item.correctAnswer}" -> [$status]');
+        }
+      }
+      debugPrint('====================================================\n');
+    }
+  }
+
   void _showReviewModal(BuildContext context) {
-    if (reviewItems == null || reviewItems!.isEmpty) return;
+    if (widget.reviewItems == null || widget.reviewItems!.isEmpty) return;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => AnswerReviewModal(
-        reviewItems: reviewItems!,
-        score: score,
-        total: total,
+        reviewItems: widget.reviewItems!,
+        score: widget.score,
+        total: widget.total,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool isPassing = score >= (total / 2);
+    final bool isPassing = widget.score >= (widget.total / 2);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAF6EE),
@@ -107,18 +169,28 @@ class QuizResultScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    const Text(
-                      'ANG IYONG ISKOR',
-                      style: TextStyle(
-                        fontSize: 12,
+                    Text(
+                      widget.paksaTitle.toUpperCase(),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 11,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 1.0,
-                        color: Color(0xFF0F172A),
+                        letterSpacing: 0.8,
+                        color: Color(0xFFC86D51),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     Text(
-                      '$score / $total',
+                      widget.activityType.toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      '${widget.score} / ${widget.total}',
                       style: const TextStyle(
                         fontSize: 48,
                         fontWeight: FontWeight.w900,
@@ -187,7 +259,8 @@ class QuizResultScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisSize:
+                            MainAxisSize.min,
                         children: [
                           Text(
                             isPassing
@@ -222,41 +295,14 @@ class QuizResultScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-
-                    if (isPassing)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF475569),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          '+1 sa Streak (6 Araw! 🔥)',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      )
-                    else
-                      const Text(
-                        'bawi tayo sa susunod! (Tuloy pa rin ang Streak!) 🔥',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF475569),
-                        ),
-                      ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
 
-              // View Answer Breakdown Button (If review items are present)
-              if (reviewItems != null && reviewItems!.isNotEmpty) ...[
+              // View Answer Breakdown Button
+              if (widget.reviewItems != null &&
+                  widget.reviewItems!.isNotEmpty) ...[
                 SizedBox(
                   width: double.infinity,
                   height: 52,
@@ -290,7 +336,7 @@ class QuizResultScreen extends StatelessWidget {
                 const SizedBox(height: 12),
               ],
 
-              // Primary Action Buttons based on Pass/Fail
+              // Primary Action Buttons
               if (isPassing) ...[
                 SizedBox(
                   width: double.infinity,
@@ -330,7 +376,7 @@ class QuizResultScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 50,
                   child: TextButton(
-                    onPressed: onRetry,
+                    onPressed: widget.onRetry,
                     child: const Text(
                       'Subukan Muli',
                       style: TextStyle(
@@ -353,7 +399,7 @@ class QuizResultScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(18),
                       ),
                     ),
-                    onPressed: onRetry,
+                    onPressed: widget.onRetry,
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

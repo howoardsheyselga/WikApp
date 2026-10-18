@@ -5,9 +5,21 @@ import '../models/lesson_models.dart';
 import '../widgets/home_page_widget/dashboard_header.dart';
 import '../widgets/lesson_page_widget/term_section.dart';
 
-class LessonsScreen extends StatelessWidget {
-const LessonsScreen({super.key, this.onSelectTab});
+class LessonsScreen extends StatefulWidget {
+  const LessonsScreen({super.key, this.onSelectTab});
   final ValueChanged<int>? onSelectTab;
+
+  @override
+  State<LessonsScreen> createState() => _LessonsScreenState();
+}
+
+class _LessonsScreenState extends State<LessonsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load initial SQLite state on startup
+    loadLessonsFromDatabase();
+  }
 
   // Helper method to open Paksa1Screen
   Future<void> openLesson(BuildContext context, LessonData lesson) async {
@@ -18,9 +30,11 @@ const LessonsScreen({super.key, this.onSelectTab});
       ),
     );
 
-    // If user tapped "Take a Quiz", switch to Activity Tab (Index 2)
+    // Refresh state when coming back from lesson
+    await loadLessonsFromDatabase();
+
     if (result == 'take_quiz') {
-      onSelectTab?.call(2);
+      widget.onSelectTab?.call(2);
     }
   }
 

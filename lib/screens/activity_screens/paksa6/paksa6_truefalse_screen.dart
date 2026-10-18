@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:wikapp_beta/data/paksa1/paksa1_multiplechoice_data.dart';
-import 'package:wikapp_beta/models/question_model.dart';
+import 'package:wikapp_beta/data/paksa6/paksa6_truefalse_data.dart';
 import 'package:wikapp_beta/widgets/activity_widgets/answer_review_modal.dart';
 import 'package:wikapp_beta/widgets/activity_widgets/quiz_result_screen.dart';
 
-class Paksa1MultipleChoiceScreen extends StatefulWidget {
-  const Paksa1MultipleChoiceScreen({super.key});
+class Paksa6TrueFalseScreen extends StatefulWidget {
+  const Paksa6TrueFalseScreen({super.key});
 
   @override
-  State<Paksa1MultipleChoiceScreen> createState() =>
-      _Paksa1MultipleChoiceScreenState();
+  State<Paksa6TrueFalseScreen> createState() => _Paksa6TrueFalseScreenState();
 }
 
-class _Paksa1MultipleChoiceScreenState
-    extends State<Paksa1MultipleChoiceScreen> {
+class _Paksa6TrueFalseScreenState extends State<Paksa6TrueFalseScreen> {
   int _currentQuestionIndex = 0;
-  late List<QuestionModel> _shuffledQuestions;
-  late List<int?> _userAnswers;
+  late List<TrueFalseQuestionModel> _shuffledQuestions;
+  late List<bool?> _userAnswers; // true = Tama, false = Mali, null = Unselected
 
   @override
   void initState() {
@@ -25,10 +22,17 @@ class _Paksa1MultipleChoiceScreenState
   }
 
   void _initializeQuiz() {
-    _shuffledQuestions = List.from(Paksa1MultipleChoiceData.questions)
-      ..shuffle();
+    _shuffledQuestions = List.from(Paksa6TrueFalseData.questions)..shuffle();
     _userAnswers = List.filled(_shuffledQuestions.length, null);
     _currentQuestionIndex = 0;
+  }
+
+  void _handlePrevious() {
+    if (_currentQuestionIndex > 0) {
+      setState(() {
+        _currentQuestionIndex--;
+      });
+    }
   }
 
   void _handleNext() {
@@ -44,18 +48,17 @@ class _Paksa1MultipleChoiceScreenState
 
       for (int i = 0; i < _shuffledQuestions.length; i++) {
         final q = _shuffledQuestions[i];
-        final selectedIndex = _userAnswers[i];
-        final isCorrect = selectedIndex == q.correctOptionIndex;
+        final userAnsBool = _userAnswers[i];
+        final isCorrect = userAnsBool == q.isTrue;
 
         if (isCorrect) {
           finalScore++;
         }
 
-        final String userAnsText = selectedIndex != null
-            ? q.options[selectedIndex].substring(3)
-            : '(Walang sagot)';
-        final String correctAnsText =
-            q.options[q.correctOptionIndex].substring(3);
+        final String userAnsText = userAnsBool == null
+            ? '(Walang sagot)'
+            : (userAnsBool ? 'Tama' : 'Mali');
+        final String correctAnsText = q.isTrue ? 'Tama' : 'Mali';
 
         reviewItems.add(
           QuizReviewItem(
@@ -71,6 +74,8 @@ class _Paksa1MultipleChoiceScreenState
         context,
         MaterialPageRoute(
           builder: (context) => QuizResultScreen(
+            activityType: 'TAMA O MALI',
+            paksaTitle: 'PAKSA 6: TEKNIKAL AT BISWAL NA TEKSTO',
             score: finalScore,
             total: _shuffledQuestions.length,
             reviewItems: reviewItems,
@@ -78,7 +83,7 @@ class _Paksa1MultipleChoiceScreenState
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const Paksa1MultipleChoiceScreen(),
+                  builder: (context) => const Paksa6TrueFalseScreen(),
                 ),
               );
             },
@@ -92,7 +97,7 @@ class _Paksa1MultipleChoiceScreenState
   Widget build(BuildContext context) {
     final currentQuestion = _shuffledQuestions[_currentQuestionIndex];
     final progress = (_currentQuestionIndex + 1) / _shuffledQuestions.length;
-    final selectedOption = _userAnswers[_currentQuestionIndex];
+    final selectedAnswer = _userAnswers[_currentQuestionIndex];
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAF6EE),
@@ -108,7 +113,7 @@ class _Paksa1MultipleChoiceScreenState
           children: [
             const Expanded(
               child: Text(
-                'Multiple Choice',
+                'Tama o Mali',
                 style: TextStyle(
                   color: Color(0xFF0F172A),
                   fontSize: 20,
@@ -234,132 +239,189 @@ class _Paksa1MultipleChoiceScreenState
                       ),
                       const SizedBox(height: 20),
 
-                      ...List.generate(currentQuestion.options.length, (index) {
-                        final optionText = currentQuestion.options[index];
-                        final isSelected = selectedOption == index;
-                        final letter = String.fromCharCode(65 + index);
+                      _buildOptionCard(
+                        letter: 'A',
+                        label: 'Tama',
+                        isSelected: selectedAnswer == true,
+                        onTap: () {
+                          setState(() {
+                            _userAnswers[_currentQuestionIndex] = true;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 12),
 
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: Material(
-                            color: isSelected
-                                ? const Color(0xFFFFEBD8)
-                                : const Color(0xFFFFFDF8),
-                            borderRadius: BorderRadius.circular(18),
-                            child: InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _userAnswers[_currentQuestionIndex] = index;
-                                });
-                              },
-                              borderRadius: BorderRadius.circular(18),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 14,
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(18),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? const Color(0xFFC86D51)
-                                        : const Color(0xFF2D2B2A),
-                                    width: isSelected ? 2.2 : 1.8,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 32,
-                                      height: 32,
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? const Color(0xFFFDE8E1)
-                                            : Colors.white,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? const Color(0xFFC86D51)
-                                              : const Color(0xFF2D2B2A),
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: Center(
-                                        child: isSelected
-                                            ? const Icon(
-                                                Icons.check_rounded,
-                                                size: 18,
-                                                color: Color(0xFFC86D51),
-                                              )
-                                            : Text(
-                                                letter,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 14,
-                                                  color: Color(0xFF0F172A),
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 14),
-                                    Expanded(
-                                      child: Text(
-                                        optionText.substring(3),
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF0F172A),
-                                          height: 1.3,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                      _buildOptionCard(
+                        letter: 'B',
+                        label: 'Mali',
+                        isSelected: selectedAnswer == false,
+                        onTap: () {
+                          setState(() {
+                            _userAnswers[_currentQuestionIndex] = false;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 10),
+
+                      const Center(
+                        child: Text(
+                          'Pumili ng iyong sagot para magpatuloy.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF64748B),
                           ),
-                        );
-                      }),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
 
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: selectedOption == null
-                        ? const Color(0xFFCBD5E1)
-                        : const Color(0xFFC86D51),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  ),
-                  onPressed: selectedOption == null ? null : _handleNext,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _currentQuestionIndex < _shuffledQuestions.length - 1
-                            ? 'Susunod na Tanong'
-                            : 'Tapusin at Suriin',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+              // Bottom Actions (Nakaraan & Susunod)
+              Row(
+                children: [
+                  if (_currentQuestionIndex > 0) ...[
+                    Expanded(
+                      flex: 1,
+                      child: SizedBox(
+                        height: 54,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                              color: Color(0xFF2D2B2A),
+                              width: 1.8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                          ),
+                          onPressed: _handlePrevious,
+                          child: const Text(
+                            'Nakaraan',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      const Icon(
-                        Icons.arrow_forward_rounded,
-                        color: Colors.white,
-                        size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                  ],
+                  Expanded(
+                    flex: 2,
+                    child: SizedBox(
+                      height: 54,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: selectedAnswer == null
+                              ? const Color(0xFFCBD5E1)
+                              : const Color(0xFFC86D51),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                        onPressed: selectedAnswer == null ? null : _handleNext,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _currentQuestionIndex <
+                                      _shuffledQuestions.length - 1
+                                  ? 'Isumite ang Sagot'
+                                  : 'Tapusin at Suriin',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.arrow_forward_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
+                    ),
                   ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOptionCard({
+    required String letter,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: isSelected ? const Color(0xFFFFEBD8) : const Color(0xFFFFFDF8),
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isSelected
+                  ? const Color(0xFFC86D51)
+                  : const Color(0xFF2D2B2A),
+              width: isSelected ? 2.2 : 1.8,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFFFDE8E1) : Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isSelected
+                        ? const Color(0xFFC86D51)
+                        : const Color(0xFF2D2B2A),
+                    width: 1.5,
+                  ),
+                ),
+                child: Center(
+                  child: isSelected
+                      ? const Icon(
+                          Icons.check_rounded,
+                          size: 18,
+                          color: Color(0xFFC86D51),
+                        )
+                      : Text(
+                          letter,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(width: 14),
+
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0F172A),
                 ),
               ),
             ],

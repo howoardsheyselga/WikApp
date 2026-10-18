@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wikapp_beta/database/lesson_data.dart';
+import 'package:wikapp_beta/database/lesson_database.dart';
 import 'package:wikapp_beta/models/lesson_models.dart';
 import 'package:wikapp_beta/screens/dashboard.dart';
 import 'package:wikapp_beta/widgets/paksa1_widgets/reading_guard_wrapper.dart';
@@ -19,11 +20,72 @@ class _Paksa1ScreenState extends State<Paksa1Screen> {
   bool isBookmarked = false;
   double fontSizeMultiplier = 1.0;
   late double _readingProgress;
+  late double _lastSavedProgress;
 
   @override
   void initState() {
     super.initState();
     _readingProgress = widget.lesson.progress;
+    _lastSavedProgress = widget.lesson.progress;
+    isBookmarked = widget.lesson.isBookmarked;
+    _loadStateFromDatabase();
+  }
+
+  /// Synchronize initial state with SQLite database
+  Future<void> _loadStateFromDatabase() async {
+    final state =
+        await LessonDatabase.instance.getLessonState(widget.lesson.id);
+    if (state != null && mounted) {
+      final double savedProgress = (state['progress'] as num).toDouble();
+      setState(() {
+        _readingProgress = savedProgress;
+        _lastSavedProgress = savedProgress;
+        isBookmarked = (state['is_bookmarked'] as int) == 1;
+      });
+    }
+  }
+
+  /// Handles scroll progress updates smoothly and writes to SQLite every 5% threshold or at 100%
+  void _handleProgressUpdate(double newProgress) {
+    if (newProgress <= _readingProgress) return;
+
+    // 1. Live UI update in memory
+    setState(() {
+      _readingProgress = newProgress;
+    });
+
+    // 2. Persist to SQLite & update global notifier when threshold reached or completed
+    if ((newProgress - _lastSavedProgress >= 0.05) || newProgress >= 1.0) {
+      _lastSavedProgress = newProgress;
+      updateLessonProgress(widget.lesson.id, newProgress);
+    }
+  }
+
+  /// Toggle bookmark status in SQLite and notify user
+  Future<void> _handleBookmarkToggle() async {
+    final newStatus =
+        await LessonDatabase.instance.toggleBookmark(widget.lesson.id);
+
+    if (mounted) {
+      setState(() {
+        isBookmarked = newStatus;
+      });
+
+      // Refresh global provider state
+      await loadLessonsFromDatabase();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            newStatus
+                ? 'Naidagdag sa mga Naka-bookmark!'
+                : 'Inalis sa mga Naka-bookmark.',
+          ),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   void _toggleFontSize() {
@@ -36,6 +98,15 @@ class _Paksa1ScreenState extends State<Paksa1Screen> {
         fontSizeMultiplier = 1.0;
       }
     });
+  }
+
+  @override
+  void dispose() {
+    // Save any unsaved final progress when popping off the screen
+    if (_readingProgress > _lastSavedProgress) {
+      updateLessonProgress(widget.lesson.id, _readingProgress);
+    }
+    super.dispose();
   }
 
   @override
@@ -83,11 +154,8 @@ class _Paksa1ScreenState extends State<Paksa1Screen> {
                   ? const Color(0xFFC86D51)
                   : const Color(0xFF1E293B),
             ),
-            onPressed: () {
-              setState(() {
-                isBookmarked = !isBookmarked;
-              });
-            },
+            onPressed: _handleBookmarkToggle,
+            tooltip: 'I-bookmark ang Paksa',
           ),
         ],
         bottom: PreferredSize(
@@ -104,22 +172,15 @@ class _Paksa1ScreenState extends State<Paksa1Screen> {
           ),
         ),
       ),
-      
-      // REUSABLE WRAPPER HERE!
       body: ReadingGuardWrapper(
         currentProgress: _readingProgress,
-        onProgressUpdated: (newProgress) {
-          setState(() {
-            _readingProgress = newProgress;
-          });
-          updateLessonProgress(widget.lesson.id, newProgress);
-        },
+        onProgressUpdated: _handleProgressUpdate,
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // All your existing Paksa1 content here...
+              // Header Image Asset
               Container(
                 width: double.infinity,
                 height: 180,
@@ -376,8 +437,7 @@ class _Paksa1ScreenState extends State<Paksa1Screen> {
               ),
               const SizedBox(height: 14),
               ...Paksa1Data.salikList.map(
-                (salik) =>
-                    SalikCard(salik: salik, baseFontSize: baseFontSize),
+                (salik) => SalikCard(salik: salik, baseFontSize: baseFontSize),
               ),
               const SizedBox(height: 28),
 
@@ -595,9 +655,13 @@ class _Paksa1ScreenState extends State<Paksa1Screen> {
               const SizedBox(height: 32),
 
               BottomActionOptions(
-                onFinishReview: () {
-                  updateLessonProgress(widget.lesson.id, 1.0);
-                  Navigator.pop(context);
+                onFinishReview: () async {
+                  _lastSavedProgress = 1.0;
+                  setState(() {
+                    _readingProgress = 1.0;
+                  });
+                  await updateLessonProgress(widget.lesson.id, 1.0);
+                  if (mounted) Navigator.pop(context);
                 },
                 onTakeQuiz: () {
                   Navigator.pushAndRemoveUntil(

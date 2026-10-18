@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:wikapp_beta/data/paksa1/paksa1_matching_data.dart';
+import 'package:wikapp_beta/data/paksa2/paksa2_matching_data.dart';
 import 'package:wikapp_beta/widgets/activity_widgets/answer_review_modal.dart';
 import 'package:wikapp_beta/widgets/activity_widgets/quiz_result_screen.dart';
 
-class Paksa1MatchingScreen extends StatefulWidget {
-  const Paksa1MatchingScreen({super.key});
+class Paksa2MatchingScreen extends StatefulWidget {
+  const Paksa2MatchingScreen({super.key});
 
   @override
-  State<Paksa1MatchingScreen> createState() => _Paksa1MatchingScreenState();
+  State<Paksa2MatchingScreen> createState() => _Paksa2MatchingScreenState();
 }
 
-class _Paksa1MatchingScreenState extends State<Paksa1MatchingScreen> {
+class _Paksa2MatchingScreenState extends State<Paksa2MatchingScreen> {
   // Map of Term ID -> Matched Option Key ('A'-'J')
   final Map<int, String> _userMatches = {};
 
@@ -73,19 +73,19 @@ class _Paksa1MatchingScreenState extends State<Paksa1MatchingScreen> {
       int score = 0;
       final List<QuizReviewItem> reviewItems = [];
 
-      for (final termModel in Paksa1MatchingData.terms) {
+      for (final termModel in Paksa2MatchingData.terms) {
         final userKey = _userMatches[termModel.id];
         final correctKey = termModel.correctOptionKey;
         final isCorrect = userKey == correctKey;
 
         if (isCorrect) score++;
 
-        final userOption = Paksa1MatchingData.options.firstWhere(
+        final userOption = Paksa2MatchingData.options.firstWhere(
           (o) => o.key == userKey,
           orElse: () => const MatchingOptionModel(key: '', description: ''),
         );
 
-        final correctOption = Paksa1MatchingData.options.firstWhere(
+        final correctOption = Paksa2MatchingData.options.firstWhere(
           (o) => o.key == correctKey,
         );
 
@@ -110,14 +110,16 @@ class _Paksa1MatchingScreenState extends State<Paksa1MatchingScreen> {
         context,
         MaterialPageRoute(
           builder: (context) => QuizResultScreen(
+            activityType: 'MATCHING TYPE',
+            paksaTitle: 'PAKSA 2: KRITIKAL NA KASANAYAN SA KOMUNIKASYON',
             score: score,
-            total: Paksa1MatchingData.terms.length,
+            total: Paksa2MatchingData.terms.length,
             reviewItems: reviewItems,
             onRetry: () {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const Paksa1MatchingScreen(),
+                  builder: (context) => const Paksa2MatchingScreen(),
                 ),
               );
             },
@@ -129,7 +131,7 @@ class _Paksa1MatchingScreenState extends State<Paksa1MatchingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTerms = Paksa1MatchingData.terms
+    final currentTerms = Paksa2MatchingData.terms
         .sublist(_currentPart * 5, (_currentPart + 1) * 5);
 
     final double totalProgress = _currentPart == 0 ? 0.5 : 1.0;
@@ -262,7 +264,7 @@ class _Paksa1MatchingScreenState extends State<Paksa1MatchingScreen> {
                       ...currentTerms.map((termItem) {
                         final assignedKey = _userMatches[termItem.id];
                         final assignedOption =
-                            assignedKey != null ? Paksa1MatchingData.options.firstWhere(
+                            assignedKey != null ? Paksa2MatchingData.options.firstWhere(
                                   (o) => o.key == assignedKey,
                                 ) : null;
 
@@ -428,7 +430,7 @@ class _Paksa1MatchingScreenState extends State<Paksa1MatchingScreen> {
                                 ),
                               ),
                               Text(
-                                ' ${_optionPageIndex + 1} / ${Paksa1MatchingData.options.length} ',
+                                ' ${_optionPageIndex + 1} / ${Paksa2MatchingData.options.length} ',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -438,7 +440,7 @@ class _Paksa1MatchingScreenState extends State<Paksa1MatchingScreen> {
                               GestureDetector(
                                 onTap: () {
                                   if (_optionPageIndex <
-                                      Paksa1MatchingData.options.length - 1) {
+                                      Paksa2MatchingData.options.length - 1) {
                                     _optionPageController.nextPage(
                                       duration: const Duration(milliseconds: 250),
                                       curve: Curves.easeInOut,
@@ -462,12 +464,12 @@ class _Paksa1MatchingScreenState extends State<Paksa1MatchingScreen> {
                         height: 82,
                         child: PageView.builder(
                           controller: _optionPageController,
-                          itemCount: Paksa1MatchingData.options.length,
+                          itemCount: Paksa2MatchingData.options.length,
                           onPageChanged: (idx) {
                             setState(() => _optionPageIndex = idx);
                           },
                           itemBuilder: (context, idx) {
-                            final option = Paksa1MatchingData.options[idx];
+                            final option = Paksa2MatchingData.options[idx];
                             final bool isMatched =
                                 _userMatches.containsValue(option.key);
 
@@ -540,7 +542,7 @@ class _Paksa1MatchingScreenState extends State<Paksa1MatchingScreen> {
                           ),
                           Row(
                             children: List.generate(
-                              Paksa1MatchingData.options.length,
+                              Paksa2MatchingData.options.length,
                               (dotIdx) => Container(
                                 margin: const EdgeInsets.symmetric(horizontal: 2),
                                 width: 6,
@@ -557,7 +559,7 @@ class _Paksa1MatchingScreenState extends State<Paksa1MatchingScreen> {
                           TextButton(
                             onPressed: () {
                               if (_optionPageIndex <
-                                  Paksa1MatchingData.options.length - 1) {
+                                  Paksa2MatchingData.options.length - 1) {
                                 _optionPageController.nextPage(
                                   duration: const Duration(milliseconds: 250),
                                   curve: Curves.easeInOut,
@@ -589,7 +591,7 @@ class _Paksa1MatchingScreenState extends State<Paksa1MatchingScreen> {
 
               const SizedBox(height: 8),
 
-              // Bottom Actions: Allows free Next/Previous navigation between Part 1 & Part 2
+              // Bottom Actions: Free navigation between Part 1 & Part 2
               Column(
                 children: [
                   // Primary CTA Button

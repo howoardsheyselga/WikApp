@@ -7,6 +7,7 @@ class LessonData {
   final Color badgeColor;
   final String imagePath;
   final double progress;
+  final bool isBookmarked;
 
   LessonData({
     required this.id,
@@ -15,16 +16,16 @@ class LessonData {
     required this.badgeColor,
     required this.imagePath,
     this.progress = 0.0,
+    this.isBookmarked = false,
   });
 
-  /// Allows updating progress and automatically deriving status
   LessonData copyWith({
     String? status,
     double? progress,
+    bool? isBookmarked,
   }) {
     final double newProgress = (progress ?? this.progress).clamp(0.0, 1.0);
     
-    // Automatically set status based on progress if not explicitly passed
     String derivedStatus = status ?? this.status;
     if (status == null) {
       if (newProgress >= 1.0) {
@@ -43,6 +44,7 @@ class LessonData {
       badgeColor: badgeColor,
       imagePath: imagePath,
       progress: newProgress,
+      isBookmarked: isBookmarked ?? this.isBookmarked,
     );
   }
 }
