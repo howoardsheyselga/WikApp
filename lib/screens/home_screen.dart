@@ -6,7 +6,9 @@ import '../widgets/home_page_widget/lesson_grid.dart';
 import '../widgets/home_page_widget/streak_bar.dart';
 
 class DashboardHomeView extends StatelessWidget {
-  const DashboardHomeView({super.key});
+  final ValueChanged<int>? onSelectTab;
+
+  const DashboardHomeView({super.key, this.onSelectTab});
 
   @override
   Widget build(BuildContext context) {
@@ -14,10 +16,12 @@ class DashboardHomeView extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          DashboardHeader(),
-          SizedBox(height: 20),
-          Text(
+        children: [
+          DashboardHeader(
+            onProfileTap: () => onSelectTab?.call(3),
+          ),
+          const SizedBox(height: 20),
+          const Text(
             'Magandang araw!',
             style: TextStyle(
               fontSize: 26,
@@ -25,15 +29,15 @@ class DashboardHomeView extends StatelessWidget {
               color: Color(0xFF1E293B),
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           
           // Promotional Banner Carousel
-          BannerCarousel(),
+          const BannerCarousel(),
           
-          SizedBox(height: 20),
-          ProgressCard(),
-          SizedBox(height: 24),
-          Text(
+          const SizedBox(height: 20),
+          const ProgressCard(),
+          const SizedBox(height: 24),
+          const Text(
             'Mga Aralin ngayon',
             style: TextStyle(
               fontSize: 20,
@@ -41,11 +45,11 @@ class DashboardHomeView extends StatelessWidget {
               color: Color(0xFF1E293B),
             ),
           ),
-          SizedBox(height: 16),
-          LessonGrid(),
-          SizedBox(height: 20),
-          StreakBar(),
-          SizedBox(height: 20),
+          const SizedBox(height: 16),
+          const LessonGrid(),
+          const SizedBox(height: 20),
+          const StreakBar(),
+          const SizedBox(height: 20),
         ],
       ),
     );

@@ -27,30 +27,32 @@ class _ActivityDashboardScreenState extends State<ActivityDashboardScreen> {
     _currentBottomNavIndex = widget.initialIndex;
   }
 
-  final List<Widget> _screens = const [
-    DashboardHomeView(),
-    LessonsScreen(),
-    ActivityScreen(),
-    ProfileScreen(),
-  ];
+  void _navigateToTab(int index) {
+    setState(() {
+      _currentBottomNavIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> screens = [
+      DashboardHomeView(onSelectTab: _navigateToTab),
+      LessonsScreen(onSelectTab: _navigateToTab),
+      ActivityScreen(onSelectTab: _navigateToTab),
+      const ProfileScreen(),
+    ];
+
     return Scaffold(
       backgroundColor: const Color(0xFFFAF6EE),
       body: SafeArea(
         child: IndexedStack(
           index: _currentBottomNavIndex,
-          children: _screens,
+          children: screens,
         ),
       ),
       bottomNavigationBar: DashboardBottomNavBar(
         currentIndex: _currentBottomNavIndex,
-        onTap: (index) {
-          setState(() {
-            _currentBottomNavIndex = index;
-          });
-        },
+        onTap: _navigateToTab,
       ),
     );
   }

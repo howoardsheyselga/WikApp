@@ -4,7 +4,9 @@ import '../widgets/activity_widgets/topic_selection_modal.dart';
 import '../widgets/home_page_widget/dashboard_header.dart';
 
 class ActivityScreen extends StatefulWidget {
-  const ActivityScreen({super.key});
+  final ValueChanged<int>? onSelectTab;
+
+  const ActivityScreen({super.key, this.onSelectTab});
 
   @override
   State<ActivityScreen> createState() => _ActivityScreenState();
@@ -25,17 +27,18 @@ class _ActivityScreenState extends State<ActivityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF6EE), // <-- Fixes the dark screen issue
+      backgroundColor: const Color(0xFFFAF6EE),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const DashboardHeader(),
+              DashboardHeader(
+                onProfileTap: () => widget.onSelectTab?.call(3), // Navigate to Profile
+              ),
               const SizedBox(height: 24),
 
-              // Title & Subtitle
               const Text(
                 'Mga Aktibidad',
                 style: TextStyle(
@@ -56,7 +59,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
               ),
               const SizedBox(height: 28),
 
-              // Sub-header
               const Text(
                 'PUMILI NG PAGSASANAY',
                 style: TextStyle(
@@ -68,7 +70,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
               ),
               const SizedBox(height: 16),
 
-              // 2x2 Activity Grid
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -77,7 +78,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 mainAxisSpacing: 14,
                 childAspectRatio: 0.78,
                 children: [
-                  // 1. Pagtukoy
                   ActivityCard(
                     title: 'Pagtukoy',
                     subtitle: 'Identification',
@@ -88,8 +88,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
                     fallbackIcon: Icons.edit_note_rounded,
                     onTap: () => _showTopicSelectionModal(context, 'PAGTUKOY'),
                   ),
-
-                  // 2. Multiple Choice
                   ActivityCard(
                     title: 'Multiple Choice',
                     subtitle: 'Pagpipilian',
@@ -101,8 +99,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
                     onTap: () =>
                         _showTopicSelectionModal(context, 'MULTIPLE CHOICE'),
                   ),
-
-                  // 3. Tama o Mali
                   ActivityCard(
                     title: 'Tama o Mali',
                     subtitle: 'True or False',
@@ -113,8 +109,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
                     fallbackIcon: Icons.thumbs_up_down_outlined,
                     onTap: () => _showTopicSelectionModal(context, 'TAMA O MALI'),
                   ),
-
-                  // 4. Pagtatambal
                   ActivityCard(
                     title: 'Pagtatambal',
                     subtitle: 'Matching Type',

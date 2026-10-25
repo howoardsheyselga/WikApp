@@ -2,8 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wikapp_beta/helpers/quiz_database_helper.dart';
 import 'package:wikapp_beta/models/quiz_history_model.dart';
+import 'package:wikapp_beta/utils/account_preferences_helper.dart';
 import 'package:wikapp_beta/widgets/activity_widgets/answer_review_modal.dart';
 import 'package:wikapp_beta/widgets/home_page_widget/dashboard_header.dart';
+import 'package:wikapp_beta/widgets/home_page_widget/streak_banner_widget.dart';
 
 class QuizResultScreen extends StatefulWidget {
   final String paksaTitle;
@@ -35,6 +37,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
   }
 
   Future<void> _saveToDatabase() async {
+    final bool isPassing = widget.score >= (widget.total / 2);
     final historyRecord = QuizHistoryModel(
       paksaTitle: widget.paksaTitle,
       activityType: widget.activityType,
@@ -48,9 +51,8 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
     final insertedId =
         await QuizDatabaseHelper.instance.insertHistoryRecord(historyRecord);
 
-    // 2. Fetch all records to check total count
-    final allRecords =
-        await QuizDatabaseHelper.instance.getAllHistoryRecords();
+    // 2. Record daily streak and star rewards
+    final stats = await AccountPreferencesHelper.recordQuizActivity(isPassing: isPassing);
 
     // 3. Print clean verification summary to VS Code Debug Console / Terminal
     if (kDebugMode) {
@@ -61,10 +63,9 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
       debugPrint(' Paksa            : ${widget.paksaTitle}');
       debugPrint(' Activity Type    : ${widget.activityType}');
       debugPrint(' Score            : ${widget.score} / ${widget.total} (${historyRecord.percentage.toStringAsFixed(1)}%)');
-      debugPrint(' Timestamp        : ${historyRecord.timestamp}');
-      debugPrint(' Total DB Entries : ${allRecords.length}');
-      debugPrint('----------------------------------------------------');
-      debugPrint(' Answer Breakdown (${widget.reviewItems?.length ?? 0} items):');
+      debugPrint(' Total Stars Now  : ${stats['stars']} ⭐');
+      debugPrint(' Current Streak   : ${stats['streak']} araw 🔥');
+      debugPrint('====================================================\n');
       
       if (widget.reviewItems != null) {
         for (int i = 0; i < widget.reviewItems!.length; i++) {
@@ -105,12 +106,18 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const DashboardHeader(),
-              const SizedBox(height: 32),
+              const DashboardHeader(
+                showProfileAvatar: false
+              ),
+              const SizedBox(height: 20),
+
+              // Special Special Streak & Star Widget Showcase
+              const StreakBannerWidget(),
+              const SizedBox(height: 24),
 
               // Dynamic Illustration
               SizedBox(
-                height: 180,
+                height: 160,
                 child: Image.asset(
                   isPassing
                       ? 'assets/images/trophy.png'
@@ -120,12 +127,12 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                     isPassing
                         ? Icons.emoji_events_rounded
                         : Icons.menu_book_rounded,
-                    size: 120,
+                    size: 100,
                     color: const Color(0xFFC86D51),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // Title & Subtitle
               Text(
@@ -148,7 +155,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                   color: Color(0xFF475569),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
 
               // Main Score Card
               Container(

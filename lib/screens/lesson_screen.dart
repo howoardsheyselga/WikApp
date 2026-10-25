@@ -17,11 +17,9 @@ class _LessonsScreenState extends State<LessonsScreen> {
   @override
   void initState() {
     super.initState();
-    // Load initial SQLite state on startup
     loadLessonsFromDatabase();
   }
 
-  // Helper method to open Paksa1Screen
   Future<void> openLesson(BuildContext context, LessonData lesson) async {
     final result = await Navigator.push(
       context,
@@ -29,16 +27,12 @@ class _LessonsScreenState extends State<LessonsScreen> {
         builder: (context) => Paksa1Screen(lesson: lesson),
       ),
     );
-
-    // Refresh state when coming back from lesson
     await loadLessonsFromDatabase();
-
     if (result == 'take_quiz') {
       widget.onSelectTab?.call(2);
     }
   }
 
-  /// Calculates total progress across all terms and lessons dynamically
   double _calculateTotalProgress(List<TermData> terms) {
     if (terms.isEmpty) return 0.0;
     final allLessons = terms.expand((t) => t.lessons).toList();
@@ -63,7 +57,9 @@ class _LessonsScreenState extends State<LessonsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const DashboardHeader(),
+                  DashboardHeader(
+                    onProfileTap: () => widget.onSelectTab?.call(3), // Navigate to Profile
+                  ),
                   const SizedBox(height: 20),
                   const Text(
                     'Mga Aralin',
@@ -84,7 +80,6 @@ class _LessonsScreenState extends State<LessonsScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Overall Course Progress Banner
                   Container(
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
@@ -138,10 +133,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // List of Term Sections
                   ...terms.map((term) => TermSection(term: term)),
                   const SizedBox(height: 20),
                 ],

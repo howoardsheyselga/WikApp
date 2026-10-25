@@ -1,14 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:wikapp_beta/utils/account_preferences_helper.dart';
 
-class StreakBar extends StatelessWidget {
-  final int streakDays;
-  final int starsCount;
+class StreakBar extends StatefulWidget {
+  const StreakBar({super.key});
 
-  const StreakBar({
-    super.key,
-    this.streakDays = 5,
-    this.starsCount = 120,
-  });
+  @override
+  State<StreakBar> createState() => _StreakBarState();
+}
+
+class _StreakBarState extends State<StreakBar> {
+  int _streakDays = 0;
+  int _starsCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+    AccountPreferencesHelper.accountChangeNotifier.addListener(_loadStats);
+  }
+
+  @override
+  void dispose() {
+    AccountPreferencesHelper.accountChangeNotifier.removeListener(_loadStats);
+    super.dispose();
+  }
+
+  Future<void> _loadStats() async {
+    final stats = await AccountPreferencesHelper.getStreakAndStars();
+    if (mounted) {
+      setState(() {
+        _streakDays = stats['streak'] ?? 0;
+        _starsCount = stats['stars'] ?? 0;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +64,7 @@ class StreakBar extends StatelessWidget {
               ),
               children: [
                 TextSpan(
-                  text: '$streakDays araw 🔥',
+                  text: '$_streakDays araw 🔥',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF1E293B),
@@ -66,7 +91,7 @@ class StreakBar extends StatelessWidget {
               ),
               children: [
                 TextSpan(
-                  text: '$starsCount ⭐',
+                  text: '$_starsCount ⭐',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF1E293B),

@@ -35,12 +35,17 @@ class LessonDatabase {
     ''');
   }
 
+  /// Reset database reference when clearing local data
+  static void resetDatabase() {
+    _database = null;
+  }
+
   /// Get progress and bookmark status for a specific Paksa by ID
   Future<Map<String, dynamic>?> getLessonState(String lessonId) async {
     final db = await instance.database;
     final maps = await db.query(
       'lesson_state',
-      columns: ['progress', 'is_bookmarked'],
+      columns: ['progress', 'is_bookmarked', 'updated_at'],
       where: 'id = ?',
       whereArgs: [lessonId],
     );
@@ -49,6 +54,15 @@ class LessonDatabase {
       return maps.first;
     }
     return null;
+  }
+
+  /// Fetch all lesson states saved in SQLite
+  Future<List<Map<String, dynamic>>> getAllLessonStates() async {
+    final db = await instance.database;
+    return await db.query(
+      'lesson_state',
+      orderBy: 'updated_at DESC',
+    );
   }
 
   /// Update reading progress in SQLite

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -11,7 +12,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  // Onboarding Page Data pointing directly to your local assets/images/ folder
   final List<Map<String, String>> _onboardingData = [
     {
       'title': 'Ang Iyong Kasama sa Pag-aaral',
@@ -38,6 +38,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'buttonText': 'Tara Na!',
     },
   ];
+
+  Future<void> _completeOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('seen_onboarding', true);
+
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, '/dashboard');
+  }
+
   void _onNextPressed() {
     if (_currentPage < _onboardingData.length - 1) {
       _pageController.nextPage(
@@ -45,25 +54,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      // Navigate to your dashboard route
-      _navigateToDashboard();
+      _completeOnboarding();
     }
-  }
-
-  void _navigateToDashboard() {
-    Navigator.pushReplacementNamed(context, '/dashboard');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F3E9), // Clean cream background
+      backgroundColor: const Color(0xFFF7F3E9),
       body: SafeArea(
         child: Column(
           children: [
             const SizedBox(height: 12),
-
-            // MAIN SWIPEABLE CONTENT
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -80,7 +82,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // LOCAL IMAGE ASSET CONTAINER
                         Expanded(
                           child: Center(
                             child: Image.asset(
@@ -111,8 +112,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ),
                           ),
                         ),
-
-                        // CATEGORY BADGE
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 4),
@@ -131,8 +130,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                         const SizedBox(height: 12),
-
-                        // TITLE
                         Text(
                           item['title']!,
                           textAlign: TextAlign.center,
@@ -143,8 +140,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
-
-                        // DESCRIPTION
                         Text(
                           item['description']!,
                           textAlign: TextAlign.center,
@@ -161,8 +156,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 },
               ),
             ),
-
-            // PAGE INDICATOR DOTS
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
@@ -182,8 +175,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
-            // PRIMARY BUTTON
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 28.0),
               child: SizedBox(
@@ -193,8 +184,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   onPressed: _onNextPressed,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _currentPage == _onboardingData.length - 1
-                        ? const Color(0xFF18181B) // Black for final step
-                        : const Color(0xFF4C617A), // Slate blue
+                        ? const Color(0xFF18181B)
+                        : const Color(0xFF4C617A),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(26),
@@ -211,14 +202,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
               ),
             ),
-
-            // SECONDARY "SKIP" BUTTON
             const SizedBox(height: 8),
             SizedBox(
               height: 40,
               child: _currentPage < _onboardingData.length - 1
                   ? TextButton(
-                      onPressed: _navigateToDashboard,
+                      onPressed: _completeOnboarding,
                       child: const Text(
                         'Laktawan',
                         style: TextStyle(
@@ -228,7 +217,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                       ),
                     )
-                  : const SizedBox.shrink(), // Hides Skip on last page
+                  : const SizedBox.shrink(),
             ),
             const SizedBox(height: 12),
           ],

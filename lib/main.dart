@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wikapp_beta/splash.dart';
 import 'screens/onboarding.dart'; 
 import 'screens/dashboard.dart'; 
 
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFFF4F4F6),
         useMaterial3: true,
       ),
-      home: const OnboardingScreen(),
+      home: const SplashScreen(),
       routes: {
         '/onboarding': (context) => const OnboardingScreen(),
         '/dashboard': (context) => const ActivityDashboardScreen(),
