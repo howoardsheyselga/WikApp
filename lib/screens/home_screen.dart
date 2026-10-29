@@ -38,7 +38,7 @@ class DashboardHomeView extends StatelessWidget {
           const ProgressCard(),
           const SizedBox(height: 24),
           const Text(
-            'Mga Aralin ngayon',
+            'Mga Uri ng Aralin',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,

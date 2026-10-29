@@ -6,10 +6,10 @@ class ReadingGuardWrapper extends StatefulWidget {
   final double currentProgress;
   final ValueChanged<double> onProgressUpdated;
   
-  /// Speed threshold in pixels per second (Default: 2800 px/s)
+  /// Speed threshold in pixels per second (Default: 2500 px/s)
   final double maxScrollVelocity;
 
-  /// Max distance allowed in a 300ms window (Default: 750 px)
+  /// Max distance allowed in a 300ms window (Default: 1100 px)
   final double maxWindowDistance;
   
   /// Lock duration in seconds when fast scroll is detected
@@ -20,8 +20,8 @@ class ReadingGuardWrapper extends StatefulWidget {
     required this.child,
     required this.currentProgress,
     required this.onProgressUpdated,
-    this.maxScrollVelocity = 25000.0,
-    this.maxWindowDistance = 11000.0,
+    this.maxScrollVelocity = 10000.0,
+    this.maxWindowDistance = 1500.0,
     this.cooldownSeconds = 3,
   });
 
@@ -30,6 +30,7 @@ class ReadingGuardWrapper extends StatefulWidget {
 }
 
 class _ReadingGuardWrapperState extends State<ReadingGuardWrapper> {
+  final ScrollController _scrollController = ScrollController();
   bool _isWarningActive = false;
   late int _remainingSeconds;
   Timer? _cooldownTimer;
@@ -51,11 +52,17 @@ class _ReadingGuardWrapperState extends State<ReadingGuardWrapper> {
   @override
   void dispose() {
     _cooldownTimer?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
   void _triggerLock() {
     if (_isWarningActive) return;
+
+    // Instantly kill any active fling momentum/inertia by jumping to current offset
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(_scrollController.offset);
+    }
 
     setState(() {
       _isWarningActive = true;
@@ -79,7 +86,6 @@ class _ReadingGuardWrapperState extends State<ReadingGuardWrapper> {
   }
 
   bool _handleScrollNotification(ScrollNotification notification) {
-    // 1. DISREGARD CHECKER: If lesson is already 100% finished, bypass completely
     if (widget.currentProgress >= 1.0) {
       if (_isWarningActive) {
         _cooldownTimer?.cancel();
@@ -96,7 +102,6 @@ class _ReadingGuardWrapperState extends State<ReadingGuardWrapper> {
       final double maxExtent = notification.metrics.maxScrollExtent;
       final DateTime now = DateTime.now();
 
-      // Downward scrolling check
       if (scrollDelta > 0) {
         final int frameTimeMs = now.difference(_lastTimestamp).inMilliseconds;
 
@@ -109,14 +114,12 @@ class _ReadingGuardWrapperState extends State<ReadingGuardWrapper> {
           }
           _windowDistance += scrollDelta;
 
-          // Only trigger lock if the lesson is not yet completed
           if (velocity > widget.maxScrollVelocity ||
               _windowDistance > widget.maxWindowDistance) {
             _triggerLock();
           }
         }
 
-        // Update progress when not locked
         if (!_isWarningActive && maxExtent > 0) {
           final double calculatedProgress =
               (currentPixels / maxExtent).clamp(0.05, 1.0);
@@ -139,9 +142,11 @@ class _ReadingGuardWrapperState extends State<ReadingGuardWrapper> {
         NotificationListener<ScrollNotification>(
           onNotification: _handleScrollNotification,
           child: AbsorbPointer(
-            // Lock touch interaction only if warning is active AND lesson isn't completed
             absorbing: _isWarningActive && widget.currentProgress < 1.0,
-            child: widget.child,
+            child: PrimaryScrollController(
+              controller: _scrollController,
+              child: widget.child, // This safely accepts your existing SingleChildScrollView!
+            ),
           ),
         ),
 

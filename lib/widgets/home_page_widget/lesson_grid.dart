@@ -90,7 +90,7 @@ class LessonGrid extends StatelessWidget {
               child: LessonCard(
                 title: 'Flashcards',
                 imagePath: 'assets/images/flashcard.png',
-                badgeColor: const Color.fromARGB(255, 0, 182, 45),
+                badgeColor: const Color(0xFF64748B),
                 onTap: () {},
               ),
             ),

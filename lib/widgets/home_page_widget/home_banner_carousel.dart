@@ -4,20 +4,16 @@ import 'package:flutter/material.dart';
 class BannerItemData {
   final String title;
   final String subtitle;
-  final String buttonText;
   final String imagePath;
   final IconData fallbackIcon;
   final Color backgroundColor;
-  final VoidCallback? onTap;
 
   const BannerItemData({
     required this.title,
     required this.subtitle,
-    required this.buttonText,
     required this.imagePath,
     required this.fallbackIcon,
     required this.backgroundColor,
-    this.onTap,
   });
 }
 
@@ -37,7 +33,6 @@ class _BannerCarouselState extends State<BannerCarousel> {
     const BannerItemData(
       title: 'TAPAT SA PAG-AARAL?',
       subtitle: 'Subukan ang mabisang pagsasanay ngayong araw!',
-      buttonText: 'Magsimula',
       imagePath: 'assets/images/home_banner1.png',
       fallbackIcon: Icons.emoji_events_rounded,
       backgroundColor: Color(0xFFE27B58),
@@ -45,7 +40,6 @@ class _BannerCarouselState extends State<BannerCarousel> {
     const BannerItemData(
       title: 'BALIKAN ANG ARALIN',
       subtitle: 'Suriin ang mga paborito at na-bookmark na paksa!',
-      buttonText: 'Tignan',
       imagePath: 'assets/images/home_banner2.png',
       fallbackIcon: Icons.bookmark_added_rounded,
       backgroundColor: Color(0xFF4A7C59),
@@ -53,7 +47,6 @@ class _BannerCarouselState extends State<BannerCarousel> {
     const BannerItemData(
       title: 'PAGSASANAY SA FLASHCARDS',
       subtitle: 'Pabilisin ang pagsaulo gamit ang mga flashcards.',
-      buttonText: 'Magsanay',
       imagePath: 'assets/images/home_banner3.png',
       fallbackIcon: Icons.style_rounded,
       backgroundColor: Color(0xFF3B5998),
@@ -61,7 +54,6 @@ class _BannerCarouselState extends State<BannerCarousel> {
     const BannerItemData(
       title: 'BAGONG PAGSUSULIT',
       subtitle: 'Subukan ang iyong kaalaman sa bagong pagsusulit.',
-      buttonText: 'Sagutan',
       imagePath: 'assets/images/home_banner4.png',
       fallbackIcon: Icons.quiz_rounded,
       backgroundColor: Color(0xFF8E44AD),
@@ -225,117 +217,83 @@ class _BannerCarouselState extends State<BannerCarousel> {
   }
 
   Widget _buildBannerCard(BannerItemData banner) {
-  return Container(
-    margin: const EdgeInsets.symmetric(horizontal: 2),
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-    decoration: BoxDecoration(
-      color: banner.backgroundColor,
-      borderRadius: BorderRadius.circular(24),
-      boxShadow: [
-        BoxShadow(
-          color: banner.backgroundColor.withValues(alpha: 0.25),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    ),
-    child: Row(
-      children: [
-        // Text Details & Action Button
-        Expanded(
-          flex: 3,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                banner.title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.6,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                banner.subtitle,
-                style: TextStyle(
-                  fontSize: 12,
-                  height: 1.3,
-                  color: Colors.white.withValues(alpha: 0.9),
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 12),
-              InkWell(
-                onTap: banner.onTap ?? () {},
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 6,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: banner.backgroundColor,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: banner.backgroundColor.withValues(alpha: 0.25),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Text Details Display (Non-interactive)
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  banner.title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.6,
+                    color: Colors.white,
                   ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF7ED),
-                    borderRadius: BorderRadius.circular(20),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  banner.subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.3,
+                    color: Colors.white.withValues(alpha: 0.9),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Illustration Image with Larger Icon Fallback
+          Expanded(
+            flex: 2,
+            child: Image.asset(
+              banner.imagePath,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return Center(
+                  child: Stack(
+                    alignment: Alignment.center,
                     children: [
-                      Text(
-                        banner.buttonText,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
+                      Icon(
+                        Icons.star_rounded,
+                        size: 115,
+                        color: Colors.white.withValues(alpha: 0.15),
                       ),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.arrow_forward_rounded,
-                        size: 14,
-                        color: Color(0xFF1E293B),
+                      Icon(
+                        banner.fallbackIcon,
+                        size: 72,
+                        color: Colors.white.withValues(alpha: 0.95),
                       ),
                     ],
                   ),
-                ),
-              ),
-            ],
+                );
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-
-        // Illustration Image with Larger Icon Fallback
-        Expanded(
-          flex: 2,
-          child: Image.asset(
-            banner.imagePath,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              return Center(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Icon(
-                      Icons.star_rounded,
-                      size: 115, // Increased from 90
-                      color: Colors.white.withValues(alpha: 0.15),
-                    ),
-                    Icon(
-                      banner.fallbackIcon,
-                      size: 72, // Increased from 58
-                      color: Colors.white.withValues(alpha: 0.95),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 }
